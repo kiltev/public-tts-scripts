@@ -1,0 +1,8 @@
+{
+  "name": "tts-spawn-engine",
+  "version": "0.1.0",
+  "description": "Generic parameter-driven TTS spawner engine (item/mod decks, tokens, conditions) for Frosthaven Enhanced custom classes.",
+  "private": true,
+  "scripts": { "test": "node tests/run.js" },
+  "dependencies": { "fengari": "^0.1.4" }
+}
