@@ -3,7 +3,7 @@
     local EMPOWER_CARD_COUNT = 12
     local SOLO_ITEM_FRONT_URL = "https://example.com/your-solo-item-front.png"
     local SOLO_ITEM_BACK_URL = "https://example.com/your-solo-item-back.png"
-    local CONDITION_NAME = "Your Condition"
+    local CONDITION_NAME = "Rupture"
     local RUPTURE_IMAGE_URL = "https://steamusercontent-a.akamaihd.net/ugc/1912358305604702725/9BE1B7F00534E8A3C9BC2C07C13B840A6ADF6ECD/"
     local CONDITION_MAX_STACK = 1
     local CARD_BACK_URL = "https://steamusercontent-a.akamaihd.net/ugc/54701802010896866/AB8DD9E90F1F31A1B80E004A35B46F72FCFE25E1/"
