@@ -34,7 +34,16 @@ local function fakeObject(o)
   function o.spread() return {} end
   function o.putObject(x) table.insert(CAPTURE.puts, { bag = o, obj = x }); o._qty = (o._qty or 0) + 1; return o end
   function o.getQuantity() return o._qty or 1 end
+  function o.getData() return deepCopy(o._data) end
+  function o.destruct() o._destroyed = true end
   return o
+end
+
+function deepCopy(value)
+  if type(value) ~= "table" then return value end
+  local copy = {}
+  for key, entry in pairs(value) do copy[key] = deepCopy(entry) end
+  return copy
 end
 FAKE_OBJECT = fakeObject
 
@@ -71,9 +80,26 @@ WebRequest = {
 Wait = {
   time = function(f) if _G.WAIT_RUN then f() end return 1 end,
   frames = function(f) if _G.WAIT_RUN then f() end return 1 end,
-  condition = function(f) if _G.WAIT_RUN then f() end return 1 end,
+  condition = function(action, isReady)
+    table.insert(PENDING_CONDITIONS, { action = action, isReady = isReady })
+    runReadyConditions()
+    return 1
+  end,
   stop = function() end,
 }
+
+PENDING_CONDITIONS = {}
+
+function runReadyConditions()
+  if not _G.WAIT_RUN then return end
+  for index = #PENDING_CONDITIONS, 1, -1 do
+    local pending = PENDING_CONDITIONS[index]
+    if pending.isReady() then
+      table.remove(PENDING_CONDITIONS, index)
+      pending.action()
+    end
+  end
+end
 
 Global = { call = function(fn, params) table.insert(CAPTURE.apiCalls, { fn = fn, params = params }); return true end }
 

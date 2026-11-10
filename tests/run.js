@@ -47,6 +47,13 @@ function injectManifest(injPath, globalName) {
 injectManifest("inject/dawnbringer_perk19.lua", "INJ_DAWN");
 injectManifest("inject/zephyr_perk19.lua", "INJ_ZEPH");
 // 4. Spec: returns number of failures.
-loadAndRun(read("tests/spec.lua"), "spec.lua", 1);
-const failures = lua.lua_tointeger(L, -1);
+function runSpec(specPath) {
+  loadAndRun(read(specPath), specPath, 1);
+  const failures = lua.lua_tointeger(L, -1);
+  lua.lua_pop(L, 1);
+  return failures;
+}
+lua.lua_pushstring(L, to_luastring(read("inject/namd_back_perk19.lua")));
+lua.lua_setglobal(L, to_luastring("NAMD_BACK_SOURCE"));
+const failures = runSpec("tests/spec.lua") + runSpec("tests/namd_back_spec.lua");
 process.exit(failures > 0 ? 1 : 0);
