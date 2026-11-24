@@ -1,4 +1,5 @@
 [19]={(function()
+    local CLASS_NAME = "Frostguard"
     local VANGUARD_ICON_URL = "https://i.imgur.com/RJugn5h.png"
     local REARGUARD_ICON_URL = "https://i.imgur.com/RhTKTDc.png"
     local VANGUARD_COLOR = "#d6efff"
@@ -6,13 +7,13 @@
     local VANGUARD_TEXT_COLOR = "#000000"
     local REARGUARD_TEXT_COLOR = "#FFFFFF"
 
-    local CLASS_NAME = self.getName()
     local VANGUARD_ICON_NAME = CLASS_NAME .. "-Stance-Vanguard"
     local REARGUARD_ICON_NAME = CLASS_NAME .. "-Stance-Rearguard"
     local FIGURE_TAG = "Character"
     local INFO_OPENING = "info = {"
-    local SETTLE_TIMEOUT_SECONDS = 30
     local REGISTER_DELAY_SECONDS = 0.5
+    local SUCCESS_COLOR = "Green"
+    local FAILURE_COLOR = "Red"
 
     local STANCES_SOURCE = string.format([[info = {
   stances = {
@@ -23,14 +24,11 @@
         VANGUARD_COLOR, VANGUARD_TEXT_COLOR, VANGUARD_ICON_NAME,
         REARGUARD_COLOR, REARGUARD_TEXT_COLOR, REARGUARD_ICON_NAME)
 
-    local function isClassFigure(object)
-        local name = object.getName() or ""
-        return name == CLASS_NAME and object ~= self
-    end
+    local isAdding = false
 
     local function findFigure()
         for _, object in ipairs(getObjectsWithTag(FIGURE_TAG)) do
-            if isClassFigure(object) then return object end
+            if object.getName() == CLASS_NAME then return object end
         end
     end
 
@@ -49,16 +47,29 @@
         return assets
     end
 
-    local function addStances(figure)
-        if hasStances(figure) then return end
-        local script = figure.getLuaScript():gsub(INFO_OPENING, STANCES_SOURCE, 1)
+    local function rewriteFigure(figure)
+        local script, replacements = figure.getLuaScript():gsub(INFO_OPENING, STANCES_SOURCE, 1)
+        if replacements == 0 then
+            printToAll(CLASS_NAME .. " stance bar: no '" .. INFO_OPENING .. "' in the figure script", FAILURE_COLOR)
+            return
+        end
         figure.UI.setCustomAssets(withStanceIcons(figure.UI.getCustomAssets() or {}))
         figure.setLuaScript(script)
         figure.reload()
+        printToAll(CLASS_NAME .. " stance bar added", SUCCESS_COLOR)
+    end
+
+    local function addStances()
+        isAdding = false
+        local figure = findFigure()
+        if hasStances(figure) then return end
+        rewriteFigure(figure)
     end
 
     local function addStancesWhenReady()
-        Wait.condition(function() addStances(findFigure()) end, isFigureReady, SETTLE_TIMEOUT_SECONDS)
+        if isAdding then return end
+        isAdding = true
+        Wait.condition(addStances, isFigureReady)
     end
 
     function onCharacterLoad(character)
@@ -71,7 +82,7 @@
     end
 
     Wait.time(function()
-        Global.call("__registerExtensions", { __caller = self.getGUID() })
         addStancesWhenReady()
+        pcall(Global.call, "__registerExtensions", { __caller = self.getGUID() })
     end, REGISTER_DELAY_SECONDS)
 end)()},
